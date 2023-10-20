@@ -1,8 +1,11 @@
 package view;
 
+import interface_adapter.clear_users.ClearController;
+import interface_adapter.clear_users.ClearViewModel;
 import interface_adapter.signup.SignupController;
 import interface_adapter.signup.SignupState;
 import interface_adapter.signup.SignupViewModel;
+import use_case.clear_users.ClearInteractor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +15,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SignupView extends JPanel implements ActionListener, PropertyChangeListener {
     public final String viewName = "sign up";
@@ -21,6 +26,8 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
     private final JPasswordField passwordInputField = new JPasswordField(15);
     private final JPasswordField repeatPasswordInputField = new JPasswordField(15);
     private final SignupController signupController;
+    private final ClearController cController;
+    private final ClearViewModel cViewModel;
 
     private final JButton signUp;
     private final JButton cancel;
@@ -28,10 +35,12 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
     // TODO Note: this is the new JButton for clearing the users file
     private final JButton clear;
 
-    public SignupView(SignupController controller, SignupViewModel signupViewModel) {
+    public SignupView(SignupController controller, SignupViewModel signupViewModel, ClearViewModel clearViewModel, ClearController clearController) {
 
         this.signupController = controller;
         this.signupViewModel = signupViewModel;
+        this.cController = clearController;
+        this.cViewModel = clearViewModel;
         signupViewModel.addPropertyChangeListener(this);
 
         JLabel title = new JLabel(SignupViewModel.TITLE_LABEL);
@@ -49,11 +58,12 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
         buttons.add(signUp);
         cancel = new JButton(SignupViewModel.CANCEL_BUTTON_LABEL);
         buttons.add(cancel);
+        clear = new JButton(SignupViewModel.CLEAR_BUTTON_LABEL);
+        buttons.add(clear);
 
         // TODO Note: the following line instantiates the "clear" button; it uses
         //      a CLEAR_BUTTON_LABEL constant which is defined in the SignupViewModel class.
         //      You need to add this "clear" button to the "buttons" panel.
-        clear = new JButton(SignupViewModel.CLEAR_BUTTON_LABEL);
 
         signUp.addActionListener(
                 // This creates an anonymous subclass of ActionListener and instantiates it.
@@ -79,7 +89,16 @@ public class SignupView extends JPanel implements ActionListener, PropertyChange
                 new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-
+                        cController.execute();
+                        Set<String> users = cViewModel.getUsers();
+                        String message = "First one";
+                        if (users != null) {
+                            Iterator<String> namesIterator = users.iterator();
+                            while (namesIterator.hasNext()) {
+                                message = message + ", " + namesIterator.next();
+                            }
+                        }
+                        JOptionPane.showMessageDialog(null, message);
                     }
                 }
         );
